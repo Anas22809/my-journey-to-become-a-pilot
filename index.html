@@ -31,8 +31,9 @@
     font-family:'Tajawal', sans-serif;
     color:var(--cloud-50);
     padding:32px 16px 80px;
+    overflow-x:hidden;
   }
-  .app{max-width:640px;margin:0 auto;}
+  .app{max-width:640px;margin:0 auto;position:relative;}
 
   /* header */
   .eyebrow{
@@ -159,6 +160,11 @@
     filter:drop-shadow(0 0 6px rgba(240,180,41,.7));
     z-index:5;
   }
+  .plane-marker.flying{animation:plane-wobble .5s ease-in-out;}
+  @keyframes plane-wobble{
+    0%,100%{filter:drop-shadow(0 0 6px rgba(240,180,41,.7));}
+    50%{filter:drop-shadow(0 0 14px rgba(240,180,41,1));}
+  }
 
   .step{
     position:relative;
@@ -186,12 +192,19 @@
     z-index:2;
     transition:.35s;
     flex-shrink:0;
+    cursor:pointer;
   }
   .step.done .marker{
     background:var(--gold-400);
     border-color:var(--gold-300);
     color:var(--navy-950);
     box-shadow:0 0 0 4px rgba(240,180,41,.15);
+  }
+  .marker.just-done{animation: marker-pop .65s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes marker-pop{
+    0%{transform:scale(1);}
+    40%{transform:scale(1.4);box-shadow:0 0 0 10px rgba(240,180,41,.35);}
+    100%{transform:scale(1);box-shadow:0 0 0 4px rgba(240,180,41,.15);}
   }
   .marker .num{transition:opacity .2s;}
   .marker .check{
@@ -222,8 +235,14 @@
     background:linear-gradient(135deg, rgba(240,180,41,.12), var(--navy-800));
     border-color:rgba(240,180,41,.4);
   }
+  .card.just-done{animation: card-flash .7s ease;}
+  @keyframes card-flash{
+    0%{box-shadow:0 0 0 0 rgba(240,180,41,.55);}
+    100%{box-shadow:0 0 0 18px rgba(240,180,41,0);}
+  }
   .card-main{display:flex;align-items:center;gap:12px;}
-  .card-emoji{font-size:24px;flex-shrink:0;}
+  .card-emoji{font-size:24px;flex-shrink:0;transition:.3s;}
+  .step.done .card-emoji{transform:scale(1.1);}
   .card-title{
     font-family:'Cairo',sans-serif;
     font-weight:700;
@@ -252,6 +271,15 @@
     color:var(--navy-950);
   }
 
+  /* final step special styling */
+  .step.final .card{border-width:2px;}
+  .step.final .marker{width:44px;height:44px;font-size:16px;}
+  .step.final.done .card{
+    background:linear-gradient(135deg, rgba(240,180,41,.22), var(--navy-800));
+    border-color:var(--gold-400);
+    box-shadow:0 0 22px rgba(240,180,41,.25);
+  }
+
   .footer-note{
     text-align:center;
     color:var(--slate-500);
@@ -259,6 +287,134 @@
     margin-top:36px;
     line-height:1.8;
   }
+
+  /* confetti */
+  .confetti-piece{
+    position:fixed;
+    width:8px;
+    height:8px;
+    pointer-events:none;
+    z-index:9998;
+    animation-name:confetti-fall;
+    animation-timing-function:ease-out;
+    animation-fill-mode:forwards;
+  }
+  @keyframes confetti-fall{
+    0%{transform:translate(0,0) rotate(0deg);opacity:1;}
+    100%{transform:translate(var(--dx), var(--dy)) rotate(var(--rot));opacity:0;}
+  }
+
+  /* achievement toast */
+  .ach-toast{
+    position:fixed;
+    transform:translate(-50%,-50%);
+    font-family:'Cairo',sans-serif;
+    font-weight:800;
+    font-size:14px;
+    color:var(--gold-300);
+    pointer-events:none;
+    z-index:9998;
+    white-space:nowrap;
+    animation:toast-float 1.3s ease-out forwards;
+    text-shadow:0 2px 10px rgba(0,0,0,.5);
+  }
+  @keyframes toast-float{
+    0%{opacity:0;transform:translate(-50%,-20%) scale(.7);}
+    20%{opacity:1;transform:translate(-50%,-55%) scale(1.15);}
+    100%{opacity:0;transform:translate(-50%,-130%) scale(1);}
+  }
+
+  /* final celebration modal */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(5,10,20,.88);
+    backdrop-filter:blur(6px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:10000;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .4s ease;
+    padding:20px;
+  }
+  .modal-overlay.show{opacity:1;pointer-events:auto;}
+  .modal-card{
+    background:linear-gradient(160deg, var(--navy-800), var(--navy-950));
+    border:1px solid rgba(240,180,41,.45);
+    border-radius:26px;
+    padding:38px 28px 30px;
+    max-width:420px;
+    width:100%;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 0 90px rgba(240,180,41,.3);
+    transform:scale(.85) translateY(20px);
+    transition:transform .45s cubic-bezier(.34,1.56,.64,1);
+  }
+  .modal-overlay.show .modal-card{transform:scale(1) translateY(0);}
+  .modal-glow{
+    position:absolute;
+    inset:-40%;
+    background:radial-gradient(circle, rgba(240,180,41,.25), transparent 60%);
+    animation:glow-pulse 2.4s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes glow-pulse{
+    0%,100%{opacity:.5;transform:scale(1);}
+    50%{opacity:1;transform:scale(1.15);}
+  }
+  .epaulette{display:flex;justify-content:center;gap:6px;margin-bottom:20px;position:relative;z-index:1;}
+  .epaulette span{
+    width:30px;height:5px;border-radius:2px;
+    background:linear-gradient(90deg,var(--gold-400),var(--gold-300));
+    box-shadow:0 0 10px rgba(240,180,41,.7);
+  }
+  .trophy{
+    font-size:70px;
+    margin-bottom:6px;
+    position:relative;z-index:1;
+    animation:trophy-bounce .9s cubic-bezier(.34,1.56,.64,1) both;
+    filter:drop-shadow(0 0 22px rgba(240,180,41,.65));
+  }
+  @keyframes trophy-bounce{
+    0%{transform:scale(0) rotate(-20deg);opacity:0;}
+    55%{transform:scale(1.3) rotate(10deg);opacity:1;}
+    75%{transform:scale(.92) rotate(-5deg);}
+    100%{transform:scale(1) rotate(0);}
+  }
+  .modal-card h2{
+    font-family:'Cairo',sans-serif;
+    font-weight:900;
+    font-size:24px;
+    margin:0 0 14px;
+    color:var(--gold-300);
+    position:relative;z-index:1;
+  }
+  .modal-card p{
+    font-size:14.5px;
+    line-height:1.9;
+    color:var(--cloud-50);
+    margin:0 0 26px;
+    position:relative;z-index:1;
+  }
+  .modal-close{
+    font-family:'Cairo',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    background:linear-gradient(90deg,var(--gold-400),var(--gold-300));
+    color:var(--navy-950);
+    border:none;
+    padding:12px 30px;
+    border-radius:999px;
+    cursor:pointer;
+    position:relative;z-index:1;
+    transition:.2s;
+    box-shadow:0 4px 18px rgba(240,180,41,.4);
+  }
+  .modal-close:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(240,180,41,.55);}
 
   @media (max-width:420px){
     .card-title{font-size:13.5px;}
@@ -292,6 +448,17 @@
   <p class="footer-note">يتم حفظ تقدمك تلقائيًا على هذا الجهاز ✦ اضغط على أي بطاقة أو الدائرة بجانبها للتبديل</p>
 </div>
 
+<div class="modal-overlay" id="finalModal">
+  <div class="modal-card">
+    <div class="modal-glow"></div>
+    <div class="epaulette"><span></span><span></span><span></span><span></span></div>
+    <div class="trophy">🏆</div>
+    <h2>مبروك أيها الكابتن! 🎖️</h2>
+    <p>سنوات من الدراسة والتعب والصبر... واليوم وصلت لمقعد القيادة. كل خطوة كانت صعبة، وكل هدف أخذ وقته، لكنك ما توقفت. هذا الإنجاز يستحق كل لحظة اشتغلت فيها عليه.<br><br>افتخر بنفسك، لأنك حولت حلمًا كان يبدو بعيدًا إلى واقع. ✈️👨‍✈️</p>
+    <button class="modal-close" id="closeModalBtn">أكمل الاحتفال</button>
+  </div>
+</div>
+
 <script>
 const steps = [
   {id:1, emoji:"🏅🎓", title:"الحصول على البكالوريا بمعدل متميز"},
@@ -314,6 +481,7 @@ const steps = [
 
 const STORAGE_KEY = "pilot-journey-progress";
 let completed = new Set();
+let justCompletedId = null;
 
 const timelineEl = document.getElementById("timeline");
 const doneCountEl = document.getElementById("doneCount");
@@ -321,6 +489,7 @@ const pctLabelEl = document.getElementById("pctLabel");
 const runwayFillEl = document.getElementById("runwayFill");
 const lineFillEl = document.getElementById("lineFill");
 const planeMarkerEl = document.getElementById("planeMarker");
+const finalModal = document.getElementById("finalModal");
 
 function arabicPercent(n){
   const map = {"0":"٠","1":"١","2":"٢","3":"٣","4":"٤","5":"٥","6":"٦","7":"٧","8":"٨","9":"٩"};
@@ -330,14 +499,17 @@ function arabicPercent(n){
 function render(){
   timelineEl.querySelectorAll(".step").forEach(el => el.remove());
   steps.forEach((s, idx) => {
+    const isDone = completed.has(s.id);
+    const isFinal = s.id === steps.length;
+    const isJust = s.id === justCompletedId;
     const stepEl = document.createElement("div");
-    stepEl.className = "step" + (completed.has(s.id) ? " done" : "");
+    stepEl.className = "step" + (isDone ? " done" : "") + (isFinal ? " final" : "");
     stepEl.innerHTML = `
-      <div class="marker">
+      <div class="marker${isJust ? ' just-done' : ''}">
         <span class="num">${idx+1}</span>
         <span class="check">✓</span>
       </div>
-      <div class="card" data-id="${s.id}">
+      <div class="card${isJust ? ' just-done' : ''}" data-id="${s.id}">
         <div class="card-main">
           <span class="card-emoji">${s.emoji}</span>
           <span class="card-title">${s.title}</span>
@@ -345,10 +517,13 @@ function render(){
         <div class="card-tick">✓</div>
       </div>
     `;
-    stepEl.querySelector(".card").addEventListener("click", () => toggle(s.id));
-    stepEl.querySelector(".marker").addEventListener("click", () => toggle(s.id));
+    const cardEl = stepEl.querySelector(".card");
+    const markerEl = stepEl.querySelector(".marker");
+    cardEl.addEventListener("click", () => toggle(s.id, cardEl));
+    markerEl.addEventListener("click", () => toggle(s.id, cardEl));
     timelineEl.appendChild(stepEl);
   });
+  justCompletedId = null;
   updateProgress();
 }
 
@@ -363,32 +538,167 @@ function updateProgress(){
   planeMarkerEl.style.top = pct + "%";
 }
 
-function toggle(id){
-  if(completed.has(id)) completed.delete(id);
-  else completed.add(id);
-  render();
+/* ---------- audio ---------- */
+let audioCtx;
+function ensureAudio(){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(completed)));
+    if(!audioCtx){ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    if(audioCtx.state === "suspended"){ audioCtx.resume(); }
+  }catch(e){ /* audio not available */ }
+}
+function playTone(freq, startOffset, duration, type, vol){
+  if(!audioCtx) return;
+  try{
+    const t0 = audioCtx.currentTime + startOffset;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol || 0.15, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + duration + 0.05);
+  }catch(e){ /* ignore */ }
+}
+function playChime(){
+  ensureAudio();
+  playTone(880, 0, 0.18, "sine", 0.14);
+  playTone(1318.5, 0.09, 0.28, "sine", 0.14);
+}
+function playFanfare(){
+  ensureAudio();
+  [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playTone(f, i*0.14, 0.4, "triangle", 0.16));
+}
+
+/* ---------- confetti ---------- */
+function spawnConfetti(x, y, count, spread){
+  const colors = ["#f0b429","#ffd166","#3b93d6","#7ec1ec","#ffffff"];
+  for(let i=0; i<count; i++){
+    const el = document.createElement("div");
+    el.className = "confetti-piece";
+    const angle = Math.random()*Math.PI*2;
+    const dist = spread*(0.5 + Math.random()*0.5);
+    const dx = Math.cos(angle)*dist;
+    const dy = Math.sin(angle)*dist - spread*0.35;
+    el.style.setProperty("--dx", dx+"px");
+    el.style.setProperty("--dy", dy+"px");
+    el.style.setProperty("--rot", (Math.random()*720-360)+"deg");
+    const dur = (0.7 + Math.random()*0.6);
+    el.style.animationDuration = dur+"s";
+    el.style.left = x+"px";
+    el.style.top = y+"px";
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    if(Math.random() > 0.5) el.style.borderRadius = "50%";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), dur*1000 + 150);
+  }
+}
+function spawnConfettiRain(count){
+  const colors = ["#f0b429","#ffd166","#3b93d6","#7ec1ec","#ffffff"];
+  for(let i=0; i<count; i++){
+    setTimeout(() => {
+      const el = document.createElement("div");
+      el.className = "confetti-piece";
+      const x = Math.random()*window.innerWidth;
+      el.style.left = x+"px";
+      el.style.top = "-20px";
+      el.style.setProperty("--dx", (Math.random()*200-100)+"px");
+      el.style.setProperty("--dy", (window.innerHeight+40)+"px");
+      el.style.setProperty("--rot", (Math.random()*720-360)+"deg");
+      const dur = (2 + Math.random()*1.5);
+      el.style.animationDuration = dur+"s";
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      if(Math.random() > 0.5) el.style.borderRadius = "50%";
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), dur*1000 + 200);
+    }, i*25);
+  }
+}
+
+/* ---------- toast ---------- */
+const praises = ["أحسنت! 🎉","خطوة أقرب لحلمك ✨","إنجاز رائع! 💪","استمر هيك! 🚀","فخورين فيك 🌟"];
+function spawnToast(x, y, text){
+  const el = document.createElement("div");
+  el.className = "ach-toast";
+  el.textContent = text;
+  el.style.left = x+"px";
+  el.style.top = y+"px";
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1400);
+}
+
+/* ---------- celebrations ---------- */
+function celebrateNormal(cx, cy){
+  playChime();
+  spawnConfetti(cx, cy, 20, 75);
+  spawnToast(cx, cy, praises[Math.floor(Math.random()*praises.length)]);
+}
+function celebrateFinal(){
+  playFanfare();
+  finalModal.classList.add("show");
+  spawnConfettiRain(90);
+  setTimeout(() => spawnConfettiRain(50), 400);
+  setTimeout(() => spawnConfettiRain(30), 900);
+}
+
+document.getElementById("closeModalBtn").addEventListener("click", () => {
+  finalModal.classList.remove("show");
+});
+
+/* ---------- toggle ---------- */
+async function toggle(id, sourceEl){
+  const wasCompleted = completed.has(id);
+  if(wasCompleted) completed.delete(id);
+  else completed.add(id);
+  const nowCompleted = completed.has(id);
+
+  let cx = window.innerWidth/2, cy = window.innerHeight/3;
+  if(sourceEl){
+    const rect = sourceEl.getBoundingClientRect();
+    cx = rect.left + rect.width/2;
+    cy = rect.top + rect.height/2;
+  }
+
+  if(nowCompleted && !wasCompleted){
+    justCompletedId = id;
+    render();
+    planeMarkerEl.classList.add("flying");
+    setTimeout(() => planeMarkerEl.classList.remove("flying"), 500);
+    if(id === steps.length){
+      celebrateFinal();
+    } else {
+      celebrateNormal(cx, cy);
+    }
+  } else {
+    render();
+  }
+
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(Array.from(completed)), false);
   }catch(e){ console.error("Storage save failed", e); }
 }
 
-function loadProgress(){
+async function loadProgress(){
   try{
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if(saved){
-      completed = new Set(JSON.parse(saved));
+    const result = await window.storage.get(STORAGE_KEY, false);
+    if(result && result.value){
+      completed = new Set(JSON.parse(result.value));
     }
   }catch(e){
-    console.error("Storage load failed", e);
+    // no saved progress yet
   }
   render();
 }
 
-document.getElementById("resetBtn").addEventListener("click", () => {
+document.getElementById("resetBtn").addEventListener("click", async () => {
   completed = new Set();
+  justCompletedId = null;
   render();
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+    await window.storage.set(STORAGE_KEY, JSON.stringify([]), false);
   }catch(e){ console.error("Storage reset failed", e); }
 });
 
